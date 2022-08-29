@@ -1,0 +1,5 @@
+{
+  "appService.preDeployTask": "publish-release",
+  "appService.deploySubpath": "bin\\Release\\net6.0\\publish",
+  "appService.defaultWebAppToDeploy": "/subscriptions/5c8fb680-3932-4098-ab9d-1306e42c94c0/microsoft.web/sites/subscriptions/5c8fb680-3932-4098-ab9d-1306e42c94c0/resourceGroups/az-rg/providers/Microsoft.Web/sites/wordlesolver-azure"
+}
