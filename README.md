@@ -25,7 +25,7 @@ https://wordlesolver-azure.azurewebsites.net/swagger/index.html and start using 
    We use the word that was generated in the second get endpoint which is
    **"alert"** and enter this word into wordle and hit enter the following image is displayed
 
-![FirstGuess](.\images\FirstGuess.png)
+![FirstGuess](https://github.com/swarooprooney/WordleSolver/blob/documentation/Images/FirstGuess.png?raw=true)
 
 Here we can see that letters a,e and r are not present and l and t are present but in wrong position, so now we will call the post api endpoint above with the following body
 
@@ -39,7 +39,7 @@ so there are 3 important bits to this API call
 
 When we execute the post API we get the **"lusty"** as the next guess
 
-![SecondGuess](.\images\SecondGuess.png)
+![SecondGuess](https://github.com/swarooprooney/WordleSolver/blob/documentation/Images/SecondGuess.png?raw=true)
 
 we enter lusty into the wordle and then hit enter, following image is displayed
 
@@ -51,4 +51,4 @@ With this second guess we know that u and s are not present in our final answer,
 
 With this information if we again call the post endpoint we get the guess as **"lofty"**, if we enter this wordle and hit enter our wordle for the day is solved. If it isn't solved you repeat the same steps again till it is solved. Hopefully you can crack it within 6 tries. If you don't let me know the word, I will see why wordle didn't pick it up.
 
-![ThirdGuess](.\images\ThirdGuess.png)
+![ThirdGuess](https://github.com/swarooprooney/WordleSolver/blob/documentation/Images/ThirdGuess.png?raw=true)
