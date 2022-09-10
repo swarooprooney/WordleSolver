@@ -47,7 +47,7 @@ we again call the API with the following body
 
 `{ "redCharacters":[ "a", "e", "r", "u", "s" ], "yellowCharacters":[ { "character":"l", "position":1 }, { "character":"t", "position":4 } ], "greenCharacters":[ { "character":"l", "position":0 }, { "character":"t", "position":3 }, { "character":"y", "position":4 } ] }`
 
-With this second guess we know that u and s are not present in our final answer, hence we add them to redCharacters list. We also know that l,t and y are present in the final answer and are in the correct position in our guess, so we add this information to the greenCharacter array as shown above. Please remember that we do not replace/remove any characters from any of the arrays, we mearly add on the extra information we get from our subsequent guesses.
+With this second guess we know that u and s are not present in our final answer, hence we add them to redCharacters list. We also know that l,t and y are present in the final answer and are in the correct position in our guess, so we add this information to the greenCharacter array along with the position as shown above. Please remember that we do not replace/remove any characters from any of the arrays, we mearly add on the extra information we get from our subsequent guesses.
 
 With this information if we again call the post endpoint we get the guess as **"lofty"**, if we enter this wordle and hit enter our wordle for the day is solved. If it isn't solved you repeat the same steps again till it is solved. Hopefully you can crack it within 6 tries. If you don't let me know the word, I will see why wordle didn't pick it up.
 
