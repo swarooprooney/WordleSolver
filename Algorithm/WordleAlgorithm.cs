@@ -1,9 +1,114 @@
+using System.Linq;
 using WordleSolver.Colours;
 
 namespace WordleSolver.Algorithm
 {
     public class WordleAlgorithm : IWordleAlgorithm
     {
+        public string GetFirstGuess(List<string> possibleAnswers)
+        {
+            int i = 5;
+            string? guess = null;
+            var stats = GetStats(possibleAnswers);
+            var chars = string.Empty;
+            while (guess is null)
+            {
+                var test = stats.Take(i).Select(x => x.Key);
+
+                foreach (var ch in test)
+                {
+                    chars = chars + ch;
+                }
+                var result = GetGuess(chars, possibleAnswers, stats);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return result;
+                }
+                i++;
+            }
+
+            return string.Empty;
+        }
+
+        private string GetGuess(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
+        {
+            Dictionary<string, int> wordScore = new Dictionary<string, int>();
+
+            foreach (var answer in possibleAnswers)
+            {
+                int i = 0;
+                foreach (var character in answer)
+                {
+                    if (!chars.Contains(character))
+                    {
+                        break;
+                    }
+                    i++;
+                }
+                if (i == answer.Length)
+                {
+                    wordScore.Add(answer, CalculateScore(answer, characterScore));
+                }
+            }
+
+            var uniqueCharaterWords = new Dictionary<string, int>();
+            foreach (var words in wordScore)
+            {
+                if (OnlyOnceCheck(words.Key))
+                {
+                    uniqueCharaterWords.Add(words.Key, words.Value);
+                }
+            }
+
+            var maxValue = uniqueCharaterWords.FirstOrDefault(x => x.Value == uniqueCharaterWords.Values.Max()).Key;
+            if (maxValue == null)
+            {
+                maxValue = wordScore.FirstOrDefault(x => x.Value == wordScore.Values.Max()).Key;
+                if (maxValue == null)
+                {
+                    return string.Empty;
+                }
+            }
+
+            return maxValue;
+        }
+
+        private bool OnlyOnceCheck(string input)
+        {
+            return input.Distinct().Count() == input.Length;
+        }
+
+        private int CalculateScore(string answer, Dictionary<char, int> characterScore)
+        {
+            int score = 0;
+            foreach (var character in answer)
+            {
+                score = score + characterScore[character];
+            }
+            return score;
+        }
+
+        public Dictionary<char, int> GetStats(List<string> possibleAnswers)
+        {
+            Dictionary<char, int> results = new Dictionary<char, int>();
+            foreach (var answer in possibleAnswers)
+            {
+                foreach (var character in answer)
+                {
+                    if (results.ContainsKey(character))
+                    {
+                        results[character] = results[character] + 1;
+                    }
+                    else
+                    {
+                        results.Add(character, 1);
+                    }
+                }
+            }
+
+            return results.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+        }
+
         public List<string> RunAlgo(WordleGuess guess, List<string> wordleList)
         {
             var redChars = guess.RedCharacters;
@@ -18,7 +123,7 @@ namespace WordleSolver.Algorithm
                 foreach (var redChar in redChars)
                 {
                     //Red
-                    if (word.Contains(redChar.Character))
+                    if (word.Contains(redChar))
                     {
                         var removeIndex = workingCopy.FindIndex(x => x.Equals(word));
                         if (removeIndex != -1)

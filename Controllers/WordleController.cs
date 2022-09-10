@@ -20,8 +20,22 @@ namespace WordleSolver.Controllers
         [HttpPost]
         public ActionResult Post(WordleGuess guess)
         {
-            var remainingWords = _wordleAlgorithm.RunAlgo(guess, Guess.GuessWords);
+            var remainingWords = _wordleAlgorithm.RunAlgo(guess, Answers.AnswersList);
             return Ok(remainingWords);
+        }
+
+        [HttpGet]
+        public ActionResult Get()
+        {
+            var stats = _wordleAlgorithm.GetStats(Answers.AnswersList);
+            return Ok(stats);
+        }
+
+        [HttpGet("FirstGuess")]
+        public ActionResult FirstGuess()
+        {
+            var stats = _wordleAlgorithm.GetFirstGuess(Answers.AnswersList);
+            return Ok(stats);
         }
     }
 }
