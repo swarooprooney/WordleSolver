@@ -24,6 +24,13 @@ namespace WordleSolver.Controllers
             return Ok(remainingWords);
         }
 
+        [HttpPost("NextGuess")]
+        public ActionResult NextGuess(WordleGuess guess)
+        {
+            var remainingWords = _wordleAlgorithm.RunAlgo(guess, Answers.AnswersList);
+            return Ok(remainingWords);
+        }
+
         [HttpGet]
         public ActionResult Get()
         {

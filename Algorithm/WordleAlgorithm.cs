@@ -1,5 +1,6 @@
 using System.Linq;
 using WordleSolver.Colours;
+using WordleSolver.Models;
 
 namespace WordleSolver.Algorithm
 {
@@ -61,14 +62,36 @@ namespace WordleSolver.Algorithm
             }
 
             var maxValue = uniqueCharaterWords.FirstOrDefault(x => x.Value == uniqueCharaterWords.Values.Max()).Key;
-            if (maxValue == null)
+            return maxValue;
+        }
+
+        private string GetGuessWithoutUniqueCharacterCheck(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
+        {
+            Dictionary<string, int> wordScore = new Dictionary<string, int>();
+
+            foreach (var answer in possibleAnswers)
             {
-                maxValue = wordScore.FirstOrDefault(x => x.Value == wordScore.Values.Max()).Key;
-                if (maxValue == null)
+                int i = 0;
+                foreach (var character in answer)
                 {
-                    return string.Empty;
+                    if (!chars.Contains(character))
+                    {
+                        break;
+                    }
+                    i++;
+                }
+                if (i == answer.Length)
+                {
+                    wordScore.Add(answer, CalculateScore(answer, characterScore));
                 }
             }
+
+            var maxValue = wordScore.FirstOrDefault(x => x.Value == wordScore.Values.Max()).Key;
+            if (maxValue == null)
+            {
+                return string.Empty;
+            }
+
 
             return maxValue;
         }
@@ -109,7 +132,7 @@ namespace WordleSolver.Algorithm
             return results.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        public List<string> RunAlgo(WordleGuess guess, List<string> wordleList)
+        public AnswersAndGuess RunAlgo(WordleGuess guess, List<string> wordleList)
         {
             var redChars = guess.RedCharacters;
             var greenChars = guess.GreenCharacters;
@@ -160,8 +183,61 @@ namespace WordleSolver.Algorithm
                 }
             }
 
+            var stats = GetStats(workingCopy);
+            string? guessWord = null;
+            var finalChars = String.Concat(greenChars) + String.Concat(yellowChars);
+            AnswersAndGuess result;
+            if (finalChars.Length == 5)
+            {
+                guessWord = GetGuess(finalChars, workingCopy, stats);
+                result = new AnswersAndGuess(workingCopy, guessWord);
+                return result;
+            }
+            int take = 5 - finalChars.Length;
+            var chars = string.Empty;
+            while (guessWord is null)
+            {
+                if (stats.Count < take)
+                {
+                    break;
+                }
+                var test = stats.Take(take).Select(x => x.Key);
 
-            return workingCopy;
+                foreach (var ch in test)
+                {
+                    chars = chars + ch;
+                }
+                guessWord = GetGuess(finalChars + chars, workingCopy, stats);
+                if (!string.IsNullOrEmpty(guessWord))
+                {
+                    return new AnswersAndGuess(workingCopy, guessWord); ;
+                }
+                take++;
+            }
+            if (guessWord is null)
+            {
+                while (guessWord is null)
+                {
+                    if (stats.Count < take)
+                    {
+                        break;
+                    }
+                    var test = stats.Take(take).Select(x => x.Key);
+
+                    foreach (var ch in test)
+                    {
+                        chars = chars + ch;
+                    }
+                    guessWord = GetGuessWithoutUniqueCharacterCheck(finalChars + chars, workingCopy, stats);
+                    if (!string.IsNullOrEmpty(guessWord))
+                    {
+                        return new AnswersAndGuess(workingCopy, guessWord); ;
+                    }
+                    take++;
+                }
+            }
+            result = new AnswersAndGuess(workingCopy, guessWord);
+            return result;
         }
     }
 }
