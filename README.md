@@ -23,7 +23,7 @@ https://wordlesolver-azure.azurewebsites.net/swagger/index.html and start using 
 
    I will try to explain how to use this endpoint with the help of an example,I think this will help us understand how we will use the endpoint going forward.
    We use the word that was generated in the second get endpoint which is
-   **"alter"** and enter this word into wordle and hit enter the following image is displayed
+   **"alert"** and enter this word into wordle and hit enter the following image is displayed
 
 ![FirstGuess](https://github.com/swarooprooney/WordleSolver/blob/main/Images/FirstGuess.png?raw=true)
 
