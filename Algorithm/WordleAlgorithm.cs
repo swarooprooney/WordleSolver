@@ -6,111 +6,43 @@ namespace WordleSolver.Algorithm
 {
     public class WordleAlgorithm : IWordleAlgorithm
     {
+        private const int wordLength = 5;
+
+        /// <summary>
+        /// Gets the first guess to begin a game of wordle
+        /// </summary>
+        /// <param name="possibleAnswers">List of possible answers</param>
+        /// <returns>The first guess that needs to used in wordle</returns>
         public string GetFirstGuess(List<string> possibleAnswers)
         {
-            int i = 5;
+            int guessWordLength = wordLength;
             string? guess = null;
             var stats = GetStats(possibleAnswers);
-            var chars = string.Empty;
             while (guess is null)
             {
-                var test = stats.Take(i).Select(x => x.Key);
+                var charactersPresentInGuess = string.Empty;
+                var charactersPresentInGuessEnumerable = stats.Take(guessWordLength).Select(x => x.Key);
 
-                foreach (var ch in test)
+                foreach (var character in charactersPresentInGuessEnumerable)
                 {
-                    chars = chars + ch;
+                    charactersPresentInGuess += character;
                 }
-                var result = GetGuess(chars, possibleAnswers, stats);
+                var result = GetUniqueCharacterWordGuess(charactersPresentInGuess, possibleAnswers, stats);
                 if (!string.IsNullOrEmpty(result))
                 {
                     return result;
                 }
-                i++;
+                guessWordLength++;
             }
 
             return string.Empty;
         }
 
-        private string GetGuess(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
-        {
-            Dictionary<string, int> wordScore = new Dictionary<string, int>();
-
-            foreach (var answer in possibleAnswers)
-            {
-                int i = 0;
-                foreach (var character in answer)
-                {
-                    if (!chars.Contains(character))
-                    {
-                        break;
-                    }
-                    i++;
-                }
-                if (i == answer.Length)
-                {
-                    wordScore.Add(answer, CalculateScore(answer, characterScore));
-                }
-            }
-
-            var uniqueCharaterWords = new Dictionary<string, int>();
-            foreach (var words in wordScore)
-            {
-                if (OnlyOnceCheck(words.Key))
-                {
-                    uniqueCharaterWords.Add(words.Key, words.Value);
-                }
-            }
-
-            var maxValue = uniqueCharaterWords.FirstOrDefault(x => x.Value == uniqueCharaterWords.Values.Max()).Key;
-            return maxValue;
-        }
-
-        private string GetGuessWithoutUniqueCharacterCheck(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
-        {
-            Dictionary<string, int> wordScore = new Dictionary<string, int>();
-
-            foreach (var answer in possibleAnswers)
-            {
-                int i = 0;
-                foreach (var character in answer)
-                {
-                    if (!chars.Contains(character))
-                    {
-                        break;
-                    }
-                    i++;
-                }
-                if (i == answer.Length)
-                {
-                    wordScore.Add(answer, CalculateScore(answer, characterScore));
-                }
-            }
-
-            var maxValue = wordScore.FirstOrDefault(x => x.Value == wordScore.Values.Max()).Key;
-            if (maxValue == null)
-            {
-                return string.Empty;
-            }
-
-
-            return maxValue;
-        }
-
-        private bool OnlyOnceCheck(string input)
-        {
-            return input.Distinct().Count() == input.Length;
-        }
-
-        private int CalculateScore(string answer, Dictionary<char, int> characterScore)
-        {
-            int score = 0;
-            foreach (var character in answer)
-            {
-                score = score + characterScore[character];
-            }
-            return score;
-        }
-
+        /// <summary>
+        /// Gets a list of all chacters and number of times they are repeated in the wordle answers.
+        /// </summary>
+        /// <param name="possibleAnswers">List of all possible answers</param>
+        /// <returns>Dictionary of characters and their score</returns>
         public Dictionary<char, int> GetStats(List<string> possibleAnswers)
         {
             Dictionary<char, int> results = new Dictionary<char, int>();
@@ -132,6 +64,12 @@ namespace WordleSolver.Algorithm
             return results.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
         }
 
+        /// <summary>
+        /// The Brains of the operation.
+        /// </summary>
+        /// <param name="guess">The wordle guess data. This contains details about characters that are not present, characters that are present but not in correct position and characters that are present and in the correct position</param>
+        /// <param name="wordleList">List of all possible answers.</param>
+        /// <returns>All the possible answers and the guess you should be making next</returns>
         public AnswersAndGuess RunAlgo(WordleGuess guess, List<string> wordleList)
         {
             var redChars = guess.RedCharacters;
@@ -185,59 +123,167 @@ namespace WordleSolver.Algorithm
 
             var stats = GetStats(workingCopy);
             string? guessWord = null;
-            var finalChars = String.Concat(greenChars) + String.Concat(yellowChars);
+            var charsPresentInAnswer = String.Concat(greenChars) + String.Concat(yellowChars);
             AnswersAndGuess result;
-            if (finalChars.Length == 5)
+
+            //Check if all the letters previous guess is in wordle answer, if yes find the possible guess. 
+            if (charsPresentInAnswer.Length == wordLength)
             {
-                guessWord = GetGuess(finalChars, workingCopy, stats);
+                guessWord = GetUniqueCharacterWordGuess(charsPresentInAnswer, workingCopy, stats);
                 result = new AnswersAndGuess(workingCopy, guessWord);
                 return result;
             }
-            int take = 5 - finalChars.Length;
-            var chars = string.Empty;
+
+            int take = wordLength - charsPresentInAnswer.Length;
+
+            // Find the best guess with unique characters for each letter.
             while (guessWord is null)
             {
+                var remainingChars = string.Empty;
                 if (stats.Count < take)
                 {
                     break;
                 }
-                var test = stats.Take(take).Select(x => x.Key);
+                var remainingCharsEnumerable = stats.Take(take).Select(x => x.Key);
 
-                foreach (var ch in test)
+                foreach (var character in remainingCharsEnumerable)
                 {
-                    chars = chars + ch;
+                    remainingChars += character;
                 }
-                guessWord = GetGuess(finalChars + chars, workingCopy, stats);
+                guessWord = GetUniqueCharacterWordGuess(charsPresentInAnswer + remainingChars, workingCopy, stats);
                 if (!string.IsNullOrEmpty(guessWord))
                 {
                     return new AnswersAndGuess(workingCopy, guessWord); ;
                 }
                 take++;
             }
-            if (guessWord is null)
-            {
-                while (guessWord is null)
-                {
-                    if (stats.Count < take)
-                    {
-                        break;
-                    }
-                    var test = stats.Take(take).Select(x => x.Key);
 
-                    foreach (var ch in test)
-                    {
-                        chars = chars + ch;
-                    }
-                    guessWord = GetGuessWithoutUniqueCharacterCheck(finalChars + chars, workingCopy, stats);
-                    if (!string.IsNullOrEmpty(guessWord))
-                    {
-                        return new AnswersAndGuess(workingCopy, guessWord); ;
-                    }
-                    take++;
+            take = wordLength - charsPresentInAnswer.Length; //Reset take
+
+            // If no unique letter word is found, find the next best possible guess
+            while (string.IsNullOrEmpty(guessWord))
+            {
+                var remainingChars = string.Empty;
+                if (stats.Count < take)
+                {
+                    break;
                 }
+                var remainingCharsEnumerable = stats.Take(take).Select(x => x.Key);
+
+                foreach (var ch in remainingCharsEnumerable)
+                {
+                    remainingChars += ch;
+                }
+                guessWord = GetGuessWithoutUniqueCharacterCheck(charsPresentInAnswer + remainingChars, workingCopy, stats);
+                if (!string.IsNullOrEmpty(guessWord))
+                {
+                    return new AnswersAndGuess(workingCopy, guessWord); ;
+                }
+                take++;
             }
+
             result = new AnswersAndGuess(workingCopy, guessWord);
             return result;
         }
+
+        /// <summary>
+        /// Gets the guess word for wordle.
+        /// </summary>
+        /// <param name="chars">all the charcters that are to be present in the guess</param>
+        /// <param name="possibleAnswers">A list of possible answers</param>
+        /// <param name="characterScore">Score for each character</param>
+        /// <returns>Next guess you should be making</returns>
+        private string GetUniqueCharacterWordGuess(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
+        {
+            Dictionary<string, int> wordScore = CalculatePossibleAnswersScore(chars, possibleAnswers, characterScore);
+            var uniqueCharaterWords = new Dictionary<string, int>();
+            foreach (var words in wordScore)
+            {
+                if (OnlyOnceCheck(words.Key))
+                {
+                    uniqueCharaterWords.Add(words.Key, words.Value);
+                }
+            }
+
+            var maxValue = uniqueCharaterWords.FirstOrDefault(x => x.Value == uniqueCharaterWords.Values.Max()).Key;
+            return maxValue;
+        }
+
+        /// <summary>
+        /// Gets the guess word for wordle where all the characters in the word are unique.
+        /// </summary>
+        /// <param name="chars">all the charcters that are to be present in the guess</param>
+        /// <param name="possibleAnswers">A list of possible answers</param>
+        /// <param name="characterScore">Score for each character</param>
+        /// <returns>Next guess you should be making</returns>
+        private string GetGuessWithoutUniqueCharacterCheck(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
+        {
+            Dictionary<string, int> wordScore = CalculatePossibleAnswersScore(chars, possibleAnswers, characterScore);
+            var maxValue = wordScore.FirstOrDefault(x => x.Value == wordScore.Values.Max()).Key;
+            if (maxValue == null)
+            {
+                return string.Empty;
+            }
+
+            return maxValue;
+        }
+
+        /// <summary>
+        /// Calculates a score for all the given possible answers
+        /// </summary>
+        /// <param name="chars">Characters which need to be present in answer</param>
+        /// <param name="possibleAnswers">List of possible answers</param>
+        /// <param name="characterScore">Score for each character</param>
+        /// <returns>Possible answers and their score.</returns>
+        private Dictionary<string, int> CalculatePossibleAnswersScore(string chars, List<string> possibleAnswers, Dictionary<char, int> characterScore)
+        {
+            Dictionary<string, int> wordScore = new Dictionary<string, int>();
+
+            foreach (var answer in possibleAnswers)
+            {
+                int guessLength = 0;
+                foreach (var character in answer)
+                {
+                    if (!chars.Contains(character))
+                    {
+                        break;
+                    }
+                    guessLength++;
+                }
+                if (guessLength == answer.Length)
+                {
+                    wordScore.Add(answer, CalculateScore(answer, characterScore));
+                }
+            }
+
+            return wordScore;
+        }
+
+        /// <summary>
+        /// Checks if any of the characters in the word is repeated.
+        /// </summary>
+        /// <param name="word">word which needs to be checked</param>
+        /// <returns>True if all the characters are unique, false if it isn't.</returns>
+        private bool OnlyOnceCheck(string word)
+        {
+            return word.Distinct().Count() == word.Length;
+        }
+
+        /// <summary>
+        /// Calculates score of the word based on stats
+        /// </summary>
+        /// <param name="answer">word whose score needs to be calculated</param>
+        /// <param name="characterScore">stats which says how likely a character will occur in wordle answers.</param>
+        /// <returns>Score of how likely this word is the answer for wordle</returns>
+        private int CalculateScore(string answer, Dictionary<char, int> characterScore)
+        {
+            int score = 0;
+            foreach (var character in answer)
+            {
+                score += characterScore[character];
+            }
+            return score;
+        }
+
     }
 }
