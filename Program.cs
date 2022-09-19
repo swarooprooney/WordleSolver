@@ -10,7 +10,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(c =>
 {
-    c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
+    c.AddPolicy("AllowOrigin", options =>
+    options
+    .AllowAnyOrigin()
+    .AllowAnyHeader()
+    .AllowAnyMethod());
 });
 
 var app = builder.Build();
@@ -20,7 +24,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-
+app.UseCors("AllowOrigin");
 //app.UseHttpsRedirection();
 
 app.UseAuthorization();
